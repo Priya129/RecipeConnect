@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import '../global/app_colors.dart';
@@ -31,7 +30,7 @@ class _CommentInputFieldState extends State<CommentInputField> {
     if (_commentController.text.isNotEmpty) {
       String commentId = const Uuid().v1();
       await FirebaseFirestore.instance
-          .collection('recipes')
+          .collection('videos')
           .doc(widget.recipeId)
           .collection('comments')
           .doc(commentId)

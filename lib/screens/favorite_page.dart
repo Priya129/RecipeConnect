@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../global/app_colors.dart';
+import '../navigation_pages/mainPage.dart';
 import '../widget/recipe_grid.dart';
 import '../model/recipe.dart';
 
@@ -15,7 +16,14 @@ class FavoritesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: const Icon(Icons.keyboard_backspace, color: AppColors.mainColor),
+        leading: GestureDetector(
+          onTap: (){
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => MainPage()),
+            );
+          },
+            child: const Icon(Icons.keyboard_backspace,
+                color: AppColors.mainColor)),
         backgroundColor: Colors.white,
         title: const Text(
           'Favorite Recipes',

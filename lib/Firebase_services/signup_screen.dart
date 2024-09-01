@@ -62,6 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     emailController.dispose();
     passwordController.dispose();
     usernameController.dispose();
+    repeatPasswordController.dispose();
     super.dispose();
   }
 
@@ -75,13 +76,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     } catch (e) {
-      print('$e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
     }
   }
 
-  Future<String?> uploadImage() async {
+  Future<String?> uploadImage(BuildContext context) async {
     if (image == null) {
-      print("Please pick an image");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please pick an image")),
+      );
       return null;
     } else {
       try {
@@ -91,7 +96,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         String downloadUrl = await snapshot.ref.getDownloadURL();
         return downloadUrl;
       } catch (e) {
-        print(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading image: $e')),
+        );
         return null;
       }
     }
@@ -106,27 +113,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
       String password = passwordController.text.trim();
       String username = usernameController.text.trim();
       try {
-        var user = await _authService.signUpWithEmailAndPassword(email, password);
+        var user = await _authService.signUpWithEmailAndPassword(email, password, context);
         if (user != null) {
-          String? imageUrl = await uploadImage();
+          String? imageUrl = await uploadImage(context);
           if (imageUrl != null) {
-            await _authService.saveUserData(user.uid, email, username, imageUrl);
+            await _authService.saveUserData(user.uid, email, username, imageUrl, context);
           }
-          print('Sign up successful: ${user.email}');
-          Routes().navigateToHomePages(context);
-        } else {
-          print('Sign up failed');
+          Routes().navigateToMainPage(context);
         }
       } on FirebaseAuthException catch (e) {
+        String message;
         if (e.code == 'email-already-in-use') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('The account already exists for that email.')),
-          );
+          message = 'The account already exists for that email.';
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Sign up failed: ${e.message}')),
-          );
+          message = 'Sign up failed: ${e.message}';
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign up failed: $e')),
@@ -301,4 +305,3 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
-

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import '../ad/ad_manager.dart';
 import '../global/app_colors.dart';
 import 'video_upload_screen.dart';
 
@@ -24,12 +25,22 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final List<String> _subIngredients = [];
   bool _isLoading = false; // Add this line
+  final AdManager adManager = AdManager();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adManager.initializeAds(context);
+    });
+  }
 
   @override
   void dispose() {
     _subIngredientsController.dispose();
     _descriptionController.dispose();
     _nameController.dispose();
+    adManager.disposeAds();
     super.dispose();
   }
 
@@ -89,6 +100,8 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Recipe uploaded successfully')),
       );
+      adManager.showInterstitialAd(context);
+
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -151,6 +164,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'Upload Recipe') {
+             //   adManager.showRewardAd(context);
                 _uploadRecipe();
               } else if (value == 'Add Video') {
                 _navigateToAddVideo();
@@ -196,7 +210,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   GestureDetector(
                     onTap: _pickImage,
                     child: Container(
-                      height: screenHeight * 0.3,
+                      height: screenHeight * 0.45,
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.mainColor, width: 2),
                         borderRadius: BorderRadius.circular(12),
@@ -253,7 +267,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   TextField(
-                    maxLines: 3,
+                    maxLines: 2,
                     controller: _descriptionController,
                     decoration: InputDecoration(
                       labelText: 'Description',
@@ -272,31 +286,6 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Time to cook',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        '${_cookingTime.toInt()} min',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    activeColor: AppColors.mainColor,
-                    value: _cookingTime,
-                    min: 0,
-                    max: 120,
-                    onChanged: (value) {
-                      setState(() {
-                        _cookingTime = value;
-                      });
-                    },
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   TextField(
@@ -350,7 +339,7 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
           if (_isLoading)
             Container(
               color: Colors.black54,
-              child: const Center(
+              child: Center(
                 child: CircularProgressIndicator(),
               ),
             ),
@@ -359,4 +348,3 @@ class _UploadRecipeScreenState extends State<UploadRecipeScreen> {
     );
   }
 }
-

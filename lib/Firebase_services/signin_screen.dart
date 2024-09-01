@@ -5,6 +5,7 @@ import '../global/button.dart';
 import '../global/custom_text_field.dart';
 import '../global/app_colors.dart';
 import '../routes/routes.dart';
+import '../screens/Forget_password.dart';
 import 'auth/auth_services.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false; // Loading state variable
+  String? _errorMessage; // Error message variable
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -46,11 +48,12 @@ class _SignInScreenState extends State<SignInScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
+        _errorMessage = null; // Reset error message
       });
       String email = emailController.text.trim();
       String password = passwordController.text.trim();
       try {
-        var user = await _authService.signInWithEmailAndPassword(email, password);
+        var user = await _authService.signInWithEmailAndPassword(email, password, context);
         if (user != null) {
           var sharedPref = await SharedPreferences.getInstance();
           sharedPref.setBool('isLoggedIn', true);
@@ -65,12 +68,18 @@ class _SignInScreenState extends State<SignInScreen> {
         } else {
           message = 'Sign in failed: ${e.message}';
         }
+        setState(() {
+          _errorMessage = message; // Set error message
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+          SnackBar(content: Text(_errorMessage!)),
         );
       } catch (e) {
+        setState(() {
+          _errorMessage = 'Sign in failed: $e'; // Set error message
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign in failed: $e')),
+          SnackBar(content: Text(_errorMessage!)),
         );
       } finally {
         setState(() {
@@ -84,9 +93,10 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       setState(() {
         _isLoading = true;
+        _errorMessage = null; // Reset error message
       });
 
-      await _authService.signInWithGoogle();
+      await _authService.signInWithGoogle(context);
       var user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
@@ -94,13 +104,19 @@ class _SignInScreenState extends State<SignInScreen> {
         sharedPref.setBool('isLoggedIn', true);
         Routes().navigateToMainPage(context);
       } else {
+        setState(() {
+          _errorMessage = 'Google sign in failed';
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google sign in failed')),
+          SnackBar(content: Text(_errorMessage!)),
         );
       }
     } catch (e) {
+      setState(() {
+        _errorMessage = 'Google sign in failed: $e';
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign in failed: $e')),
+        SnackBar(content: Text(_errorMessage!)),
       );
     } finally {
       setState(() {
@@ -173,12 +189,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           const SizedBox(),
                           InkWell(
                             onTap: () {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => const ForgetPasswordScreen(),
-                              //   ),
-                              // );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ForgotPasswordPage(),
+                                ),
+                              );
                             },
                             child: const Text(
                               "Forget Password?",
@@ -194,7 +210,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     const SizedBox(height: 20.0),
                     _isLoading
-                        ? Center(child: CircularProgressIndicator())
+                        ? Center(child: CircularProgressIndicator(color: AppColors.mainColor,))
                         : Button(
                       name: "Log In",
                       onPressed: () {
@@ -281,5 +297,3 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
-
-

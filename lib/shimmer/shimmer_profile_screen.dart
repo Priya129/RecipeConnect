@@ -75,42 +75,7 @@ class ShimmerProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  height: screenHeight * 0.05,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.25),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            // Handle Reels tab tap
-                          },
-                          child: ImageIcon(
-                            const AssetImage('assets/Images/reels.png'),
-                            size: isWideScreen ? 30 : 25,
-                            color: Colors.deepOrange.shade400,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // Handle Photos tab tap
-                          },
-                          child: ImageIcon(
-                            const AssetImage('assets/Images/dashboard.png'),
-                            size: isWideScreen ? 25 : 20,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  color: Colors.deepOrange.shade400,
-                ),
+
                 Padding(
                   padding: EdgeInsets.all(isWideScreen ? 24.0 : 16.0),
                   child: GridView.builder(

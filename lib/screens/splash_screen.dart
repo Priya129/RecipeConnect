@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:recipe_project/navigation_pages/mainPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../navigation_pages/mainPage.dart';
 import '../routes/routes.dart';
-import '../screens/recipe_post_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -98,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   SizedBox(height: screenHeight * 0.02),
                   const Center(
                     child: Text(
-                      'SocialSpice',
+                      'RecipeConnect',
                       style: TextStyle(
                         fontSize: 24,
                         fontFamily: 'Poppins',
@@ -109,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.01),
                   const Text(
-                    "Unlock the Flavor Vault with TasteTreasure!",
+                    "Find, Share and Connect with Recipes!",
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,

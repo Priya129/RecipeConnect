@@ -1,16 +1,21 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:recipe_project/screens/recipepost_screen.dart';
 import 'package:recipe_project/screens/userListScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ad/ad_manager.dart';
 import '../screens/user_search_screen.dart';
 import '../shimmer/shimmer_profile_screen.dart';
 import '../Firebase_services/signin_screen.dart';
 import '../global/app_colors.dart';
+import '../shimmer/videoscreen.dart';
+import 'chatscreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -32,8 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   late Future<DocumentSnapshot> userProfileFuture;
   bool isFollowing = false;
-  bool showReels = true;
-  bool showPhotos = false;
   List<String> userThumbnailVideos = [];
   List<String> userThumbnailPhotos = [];
   String? _username;
@@ -41,6 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _pickedImageFile;
   int followers = 0;
   int followings = 0;
+  final AdManager adManager = AdManager();
 
   @override
   void initState() {
@@ -48,15 +52,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     userProfileFuture = _fetchUserProfile();
     _fetchUserVideosthumbnail();
     _fetchUserPostthumbnail();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adManager.initializeAds(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    adManager.disposeAds();
+    super.dispose();
   }
 
   Future<DocumentSnapshot> _fetchUserProfile() async {
     String uid = widget.userId ?? _auth.currentUser!.uid;
-    DocumentSnapshot userProfile = await _firestore.collection('user').doc(uid).get();
+    DocumentSnapshot userProfile =
+    await _firestore.collection('user').doc(uid).get();
     if (widget.userId != null) {
       DocumentSnapshot currentUserProfile =
       await _firestore.collection('user').doc(_auth.currentUser!.uid).get();
-      List<String> followingsList = List<String>.from(currentUserProfile['followings']);
+      List<String> followingsList =
+      List<String>.from(currentUserProfile['followings']);
       setState(() {
         isFollowing = followingsList.contains(widget.userId);
       });
@@ -95,27 +110,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _navigateToChat() async {
+    if (widget.userId != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            currentUserId: widget.currentUserId,
+            otherUserId: widget.userId!,
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _followUnfollowUser(String followeeUid) async {
     String currentUserUid = _auth.currentUser!.uid;
 
     if (followeeUid == currentUserUid) {
-      // Do not allow a user to follow themselves
       return;
     }
 
     await _firestore.runTransaction((transaction) async {
-      DocumentReference currentUserRef = _firestore.collection('user').doc(currentUserUid);
-      DocumentReference followeeRef = _firestore.collection('user').doc(followeeUid);
+      DocumentReference currentUserRef =
+      _firestore.collection('user').doc(currentUserUid);
+      DocumentReference followeeRef =
+      _firestore.collection('user').doc(followeeUid);
 
-      DocumentSnapshot currentUserSnapshot = await transaction.get(currentUserRef);
+      DocumentSnapshot currentUserSnapshot =
+      await transaction.get(currentUserRef);
       DocumentSnapshot followeeSnapshot = await transaction.get(followeeRef);
 
       if (!currentUserSnapshot.exists || !followeeSnapshot.exists) {
         throw Exception('User data not found');
       }
 
-      List<String> currentFollowings = List<String>.from(currentUserSnapshot['followings']);
-      List<String> followeeFollowers = List<String>.from(followeeSnapshot['followers']);
+      List<String> currentFollowings =
+      List<String>.from(currentUserSnapshot['followings']);
+      List<String> followeeFollowers =
+      List<String>.from(followeeSnapshot['followers']);
 
       if (currentFollowings.contains(followeeUid)) {
         currentFollowings.remove(followeeUid);
@@ -125,12 +157,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           followers -= 1;
         });
       } else {
-        if (!currentFollowings.contains(followeeUid)) {
-          currentFollowings.add(followeeUid);
-        }
-        if (!followeeFollowers.contains(currentUserUid)) {
-          followeeFollowers.add(currentUserUid);
-        }
+        currentFollowings.add(followeeUid);
+        followeeFollowers.add(currentUserUid);
         setState(() {
           isFollowing = true;
           followers += 1;
@@ -146,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
     await _auth.signOut();
-    await _googleSignIn.signOut(); // Sign out from Google
+    await _googleSignIn.signOut();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const SignInScreen()),
     );
@@ -186,8 +214,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditProfileDialog(String currentUsername, String currentImageUrl) {
-    _username = currentUsername; // Set the initial username
-    _imageUrl = currentImageUrl; // Set the initial image URL
+    _username = currentUsername;
+    _imageUrl = currentImageUrl;
 
     showDialog(
       context: context,
@@ -195,39 +223,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             bool isLoading = false;
-
-            Future<void> _updateProfile() async {
-              setState(() {
-                isLoading = true;
-              });
-
-              String uid = _auth.currentUser!.uid;
-
-              if (_pickedImageFile != null) {
-                final storageRef = FirebaseStorage.instance
-                    .ref()
-                    .child('user_profiles/$uid.jpg');
-                await storageRef.putFile(_pickedImageFile!);
-                _imageUrl = await storageRef.getDownloadURL();
-              }
-
-              await _firestore.collection('user').doc(uid).update({
-                'username': _username,
-                'imageUrl': _imageUrl,
-              }).then((_) {
-                setState(() {
-                  userProfileFuture =
-                      _fetchUserProfile(); // Reload the profile data
-                });
-                Navigator.of(context).pop(); // Close the dialog
-              }).catchError((error) {
-                print("Error updating profile: $error");
-              }).whenComplete(() {
-                setState(() {
-                  isLoading = false;
-                });
-              });
-            }
 
             return AlertDialog(
               title: const Center(
@@ -247,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Center(
                       child: Container(
                         height: 40,
-                        width: 400,
+                        width: double.infinity,
                         decoration: BoxDecoration(
                           color: AppColors.transparentColor,
                           borderRadius: BorderRadius.circular(10),
@@ -267,10 +262,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     _pickedImageFile != null
-                        ? Image.file(_pickedImageFile!, height: 400, width: 400)
+                        ? Image.file(_pickedImageFile!, height: 200, width: 200)
                         : currentImageUrl.isNotEmpty
                         ? Image.network(currentImageUrl,
-                        height: 400, width: 400)
+                        height: 200, width: 200)
                         : Container(),
                     const SizedBox(height: 20),
                     GestureDetector(
@@ -312,9 +307,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 isLoading
-                    ? CircularProgressIndicator()
+                    ? const CircularProgressIndicator()
                     : GestureDetector(
-                  onTap: _updateProfile,
+                  onTap: () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    await _updateProfile();
+                    setState(() {
+                      isLoading = false;
+                    });
+                  },
                   child: Container(
                     height: 30,
                     width: 60,
@@ -377,11 +380,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Widget buildColumn(int count, String label) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(
+        leading: BackButton(
+          onPressed: () {
+            adManager.showInterstitialAd(context);
+          },
           color: AppColors.mainColor,
         ),
         title: const Text(
@@ -394,6 +421,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
         actions: [
+          if (widget.userId != null && widget.userId != _auth.currentUser!.uid)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline,
+                  color: AppColors.mainColor),
+              onPressed: _navigateToChat,
+            ),
           IconButton(
             icon: const Icon(
               Icons.search,
@@ -437,7 +470,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             } else if (!snapshot.hasData || !snapshot.data!.exists) {
               return const Center(child: Text('User profile not found'));
             }
-
             var userData = snapshot.data!.data() as Map<String, dynamic>;
             var username = userData['username'] ?? 'Unknown';
             var email = userData['email'] ?? 'Unknown';
@@ -565,7 +597,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 )
                                     : TextButton(
                                   onPressed: () {
-                                    _followUnfollowUser(widget.userId!);
+                                    _followUnfollowUser(
+                                        widget.userId!);
                                   },
                                   child: Text(
                                     isFollowing
@@ -573,72 +606,131 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         : 'Follow',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight:
+                                      FontWeight.bold,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Videos',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Poppins',
+                                color: AppColors.mainColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics:
+                              const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 4.0,
+                                mainAxisSpacing: 4.0,
+                              ),
+                              itemCount: userThumbnailVideos.length,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            VideoFeedScreens(
+                                              userId: widget.userId!,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CachedNetworkImage(
+                                        imageUrl:
+                                        userThumbnailVideos[index],
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Icon(
+                                          Icons
+                                              .video_collection_rounded,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Photos',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Poppins',
+                                color: AppColors.mainColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics:
+                              const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 4.0,
+                                mainAxisSpacing: 4.0,
+                              ),
+                              itemCount: userThumbnailPhotos.length,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            RecipePostScreen(
+                                              userId: widget.userId!,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CachedNetworkImage(
+                                        imageUrl:
+                                        userThumbnailPhotos[index],
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: double.infinity,
-                        height: 40,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 100),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    showReels = true;
-                                    showPhotos = false;
-                                  });
-                                },
-                                child: ImageIcon(
-                                  const AssetImage('assets/Images/reels.png'),
-                                  size: 25,
-                                  color: showReels
-                                      ? Colors.deepOrange.shade400
-                                      : Colors.grey,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    showPhotos = true;
-                                    showReels = false;
-                                  });
-                                },
-                                child: ImageIcon(
-                                  const AssetImage('assets/Images/dashboard.png'),
-                                  size: 20,
-                                  color: showPhotos
-                                      ? Colors.deepOrange.shade400
-                                      : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Divider(
-                        height: 1,
-                        color: Colors.deepOrange.shade400,
-                      ),
-                      if (showReels)
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: _buildReelsGrid(),
-                        ),
-                      if (showPhotos)
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: _buildPostGrid(),
-                        ),
                     ],
                   ),
                 ),
@@ -647,88 +739,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildReelsGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: userThumbnailVideos.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-      ),
-      itemBuilder: (context, index) {
-        return _buildThumbnailItem(userThumbnailVideos[index]);
-      },
-    );
-  }
-
-  Widget _buildThumbnailItem(String thumbnailUrl) {
-    return GridTile(
-      child: Stack(
-        children: [
-          Image.network(
-            thumbnailUrl,
-            fit: BoxFit.cover,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: userThumbnailPhotos.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-      ),
-      itemBuilder: (context, index) {
-        return _buildPostThumbnailItem(userThumbnailPhotos[index]);
-      },
-    );
-  }
-
-  Widget _buildPostThumbnailItem(String thumbnailUrl) {
-    return GridTile(
-      child: Stack(
-        children: [
-          Image.network(
-            thumbnailUrl,
-            fit: BoxFit.cover,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildColumn(int num, String label) {
-    return Column(
-      children: [
-        Text(
-          num.toString(),
-          style: const TextStyle(
-            color: Colors.black,
-            fontFamily: 'Poppins',
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.black,
-            fontFamily: 'Poppins',
-            fontSize: 14,
-          ),
-        ),
-      ],
     );
   }
 }

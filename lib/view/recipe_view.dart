@@ -1,14 +1,25 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../ad/ad_manager.dart'; // Import the AdManager
 import '../global/app_colors.dart';
 import '../model/nutrient_info_model.dart';
 import '../model/recipe.dart';
-import '../widget/web_view_page.dart';
+import '../navigation_pages/mainPage.dart';
 
 class RecipeDetailPage extends StatelessWidget {
   final Recipe recipe;
+  final AdManager _adManager = AdManager(); // Initialize the AdManager
 
   RecipeDetailPage({required this.recipe});
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +35,14 @@ class RecipeDetailPage extends StatelessWidget {
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
                   background: recipe.image.isNotEmpty
-                      ? Image.network(
-                     recipe.image,
+                      ? CachedNetworkImage(
+                    imageUrl: recipe.image,
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => const Placeholder(
+                      fallbackHeight: 300.0,
+                      fallbackWidth: double.infinity,
+                    ),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
                   )
                       : const Placeholder(
                     fallbackHeight: 300.0,
@@ -158,14 +174,7 @@ class RecipeDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WebViewPage(url: recipe.url),
-                              ),
-                            );
-                          },
+                          onTap: () => _launchURL(recipe.url),
                           child: Text(
                             'Source: ${recipe.url}',
                             style: const TextStyle(
@@ -189,15 +198,15 @@ class RecipeDetailPage extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => MainPage()),
+                );
               },
             ),
           ),
         ],
       ),
+      bottomNavigationBar: _adManager.getLargeBannerAdWidget(), // Banner Ad at the bottom
     );
   }
 }
-
-
-

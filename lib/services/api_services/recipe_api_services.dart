@@ -3,8 +3,8 @@ import '../../model/recipe.dart';
 
 class ApiService {
   final Dio _dio = Dio();
-  final String apiKey = '3929a7e39517cf6fbd96edd5f3c109fb';
-  final String apiId = '6a592252';
+  final String apiKey = '6b88d9fa10a904617623058b2e3247ed';
+  final String apiId = '06fb9ba0';
 
   Future<List<Recipe>> fetchRecipes(String query) async {
     try {

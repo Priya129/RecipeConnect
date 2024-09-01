@@ -7,6 +7,7 @@ import '../screens/comment_text_field.dart';
 class CommentSection extends StatefulWidget {
   final String recipeId;
 
+
   const CommentSection({Key? key, required this.recipeId}) : super(key: key);
 
   @override
@@ -51,7 +52,7 @@ class _CommentSectionState extends State<CommentSection> {
 
   Future<void> _deleteComment(String commentId) async {
     await FirebaseFirestore.instance
-        .collection('recipes')
+        .collection('videos')
         .doc(widget.recipeId)
         .collection('comments')
         .doc(commentId)
@@ -76,7 +77,7 @@ class _CommentSectionState extends State<CommentSection> {
               Expanded(
                 child: StreamBuilder(
                   stream: FirebaseFirestore.instance
-                      .collection('recipes')
+                      .collection('videos')
                       .doc(widget.recipeId)
                       .collection('comments')
                       .orderBy('timestamp', descending: true)

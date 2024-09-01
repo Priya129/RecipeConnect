@@ -5,8 +5,9 @@ import '../global/app_colors.dart';
 import '../screens/favorite_page.dart';
 import '../screens/home_page.dart';
 import '../screens/profile_screen.dart';
+import '../screens/search_page.dart';
 import '../screens/upload_recipe_screen.dart';
-import '../screens/video_feed_screen.dart';
+import '../screens/Video_feed_screen.dart';
 import '../shimmer/shimmer_profile_screen.dart';
 
 class MainPage extends StatefulWidget {
@@ -39,7 +40,7 @@ class _MainPageState extends State<MainPage> {
 
     final List<Widget> screens = [
       HomePage(),
-      VideoFeedScreen(key: _videoFeedKey, ),
+      SearchPage(),
       UploadRecipeScreen(),
       FavoritesScreen(),
       if (currentUserId != null)
@@ -54,7 +55,7 @@ class _MainPageState extends State<MainPage> {
         controller: _pageController,
         onPageChanged: (index) {
           if (selectedIndex == 1 && index != 1) {
-            _videoFeedKey.currentState?.pauseAllVideos();
+        //    _videoFeedKey.currentState?.pauseAllVideos();
           }
           setState(() {
             selectedIndex = index;
@@ -73,7 +74,7 @@ class _MainPageState extends State<MainPage> {
         },
         items: [
           Icon(Icons.home, size: isWideScreen ? 30 : 26, color: Colors.white),
-          ImageIcon(AssetImage('assets/Images/reels.png'), size: isWideScreen ? 30 : 26, color: Colors.white),
+          Icon(Icons.search, size: isWideScreen ? 30 : 26, color: Colors.white),
           ImageIcon(AssetImage('assets/Images/sign.png'), size: isWideScreen ? 30 : 26, color: Colors.white),
           Icon(Icons.favorite, size: isWideScreen ? 30 : 26, color: Colors.white),
           Icon(Icons.person, size: isWideScreen ? 30 : 26, color: Colors.white),

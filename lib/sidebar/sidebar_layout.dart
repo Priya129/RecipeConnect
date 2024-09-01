@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:recipe_project/screens/Video_feed_screen.dart';
 import 'package:recipe_project/sidebar/sidebar_item.dart';
 import '../global/app_colors.dart';
 import '../screens/recipe_post_screen.dart';
@@ -10,7 +9,8 @@ class SidebarLayout extends StatefulWidget {
   int selectedIndex = 0;
   final Function(int) onPressed;
 
-  SidebarLayout({Key? key, required this.selectedIndex, required this.onPressed})
+  SidebarLayout(
+      {Key? key, required this.selectedIndex, required this.onPressed})
       : super(key: key);
 
   @override
@@ -69,19 +69,28 @@ class _SidebarLayoutState extends State<SidebarLayout> {
           const SizedBox(height: 50),
           GestureDetector(
             onTap: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => RecipePost()));
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => RecipePost()));
             },
             child: const Icon(Icons.dashboard, color: Colors.grey),
           ),
           const SizedBox(height: 40),
           GestureDetector(
             onTap: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => VideoFeedScreen()));
+            },
+            child: ImageIcon(AssetImage('assets/Images/reels.png'),
+                size: 26, color: Colors.grey),
+          ),
+          /*const SizedBox(height: 40),
+          GestureDetector(
+            onTap: () {
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => SearchPage()));
             },
             child: const Icon(Icons.search, color: Colors.grey),
-          ),
+          ),*/
           const SizedBox(height: 80),
           Expanded(
             child: Column(

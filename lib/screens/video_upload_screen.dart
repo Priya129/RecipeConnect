@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
+import '../ad/ad_manager.dart';
 import '../global/app_colors.dart';
 
 class UploadRecipeVideoScreen extends StatefulWidget {
@@ -23,11 +24,21 @@ class _UploadRecipeVideoScreenState extends State<UploadRecipeVideoScreen> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   VideoPlayerController? _videoPlayerController;
   bool _isUploading = false;
+  final AdManager adManager = AdManager();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adManager.initializeAds(context);
+    });
+  }
 
   @override
   void dispose() {
     _descriptionController.dispose();
     _videoPlayerController?.dispose();
+    adManager.disposeAds();
     super.dispose();
   }
 
@@ -106,6 +117,7 @@ class _UploadRecipeVideoScreenState extends State<UploadRecipeVideoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Video uploaded successfully')),
       );
+      adManager.showInterstitialAd(context);
 
       setState(() {
         file = null;
@@ -178,7 +190,9 @@ class _UploadRecipeVideoScreenState extends State<UploadRecipeVideoScreen> {
             ),
           )
               : GestureDetector(
-            onTap: _uploadRecipe,
+            onTap:
+
+            _uploadRecipe,
             child: const Padding(
               padding: EdgeInsets.only(right: 25.0),
               child: Text(
@@ -280,7 +294,8 @@ class _UploadRecipeVideoScreenState extends State<UploadRecipeVideoScreen> {
             Padding(
               padding: EdgeInsets.all(isWideScreen ? 24.0 : 16.0),
               child: TextField(
-                maxLines: 3,
+                maxLines: 2,
+                maxLength: 300,
                 controller: _descriptionController,
                 decoration: InputDecoration(
                   labelText: 'Description',

@@ -37,7 +37,7 @@ class CommentCard extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final commentRef = FirebaseFirestore.instance
-          .collection('recipes')
+          .collection('videos')
           .doc(recipeId)
           .collection('comments')
           .doc(commentId);

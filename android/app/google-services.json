@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "526258473410",
-    "project_id": "recipeproject-7b80e",
-    "storage_bucket": "recipeproject-7b80e.appspot.com"
+    "project_number": "213483256150",
+    "project_id": "recipeconnect-9cd4b",
+    "storage_bucket": "recipeconnect-9cd4b.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:526258473410:android:96bb825c8598f716daee5b",
+        "mobilesdk_app_id": "1:213483256150:android:06811c999297cd39b9bef7",
         "android_client_info": {
-          "package_name": "com.example.recipe_project"
+          "package_name": "com.recipeconnect.flutterfusion.priyachapagain"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBJK4k2Ew0-BETrpDlFASu6BqSeyoJZ_3U"
+          "current_key": "AIzaSyAdiw6CvYjRhJPLp6VJtL5ES6ZXZON82hw"
         }
       ],
       "services": {

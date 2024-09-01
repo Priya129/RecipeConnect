@@ -1,4 +1,4 @@
-package com.example.recipe_project
+package com.recipeconnect.flutterfusion.priyachapagain
 
 import io.flutter.embedding.android.FlutterActivity
 
