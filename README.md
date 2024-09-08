@@ -14,19 +14,19 @@ RecipeConnect is a Flutter application that serves as a platform for users to di
 ## Screenshots
 
 ### Splash Screen
-![Splas Screen](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe1.jpg){:height="50px"}
+<img src="https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe1.jpg" alt="Splash Screen" height="300"/>)
 
 ### Recipe Screen
-![Recipe Screen](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe2.jpg){:height="50px"}
+<img src="https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe2.jpg" alt="Recipe Screen" height="300"/>)
 
 ### Recipe Posting
-![Recipe Posting](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe3.jpg){:height="50px"}
+<img src="https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe3.jpg" alt="Recipe Posting" height="300"/>)
 
 ### Messaging
-![Messaging](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe4.jpg){:height="50px"}
+<img src="https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe4.jpg" alt="Messaging" height="300"/>)
 
 ### Profile
-![Profile](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe5.jpg){:height="50px"}
+<img src="https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe5.jpg" alt="Profile" height="300"/>)
 
 ## Prerequisites
 
