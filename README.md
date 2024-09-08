@@ -35,10 +35,4 @@ RecipeConnect is a Flutter application that serves as a platform for users to di
 - Basic knowledge of Flutter and Dart.
 - Familiarity with third party APIs and state management in Flutter.
 
-## Installation
 
-1. **Clone the repository**:
-
-   ```bash
-   git clone https://github.com/yourusername/recipeconnect.git
-   cd recipeconnect
