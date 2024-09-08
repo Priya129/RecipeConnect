@@ -26,7 +26,7 @@ RecipeConnect is a Flutter application that serves as a platform for users to di
 ![Messaging](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe4.jpg){:height="50px"}
 
 ### Profile
-![Profile](screenshots/messaging.png){:height="300px"}
+![Profile](https://github.com/Priya129/RecipeConnect/blob/main/assets/Images/recipe5.jpg){:height="50px"}
 
 ## Prerequisites
 
